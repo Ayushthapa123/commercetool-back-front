@@ -1,0 +1,54 @@
+meta {
+  name: Create Payment
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host_url}}/payments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "anonymousId": "asdf-1234561",
+    "amountPlanned": {
+      "centAmount": 10000,
+      "currencyCode": "EUR"
+    },
+    "custom": {
+      "type": {
+        "typeId": "type",
+        "key": "custom-payment-fields"
+      },
+      "fields": {
+        "brandName": "Visa",
+        "lastFourDigits": "4242",
+        "fundingType": "credit"
+      }
+    }
+  }
+}
+
+docs {
+  # Create Payment
+  
+  Endpoint used for creating a [Payment](https://docs.commercetools.com/api/projects/payments#payment)
+  in commercetools.
+  
+  ## Requirements
+  
+  - The request body must contain a [PaymentDraft](https://docs.commercetools.com/api/projects/payments#paymentdraft) object.
+  
+  Example `PaymentDraft`
+  ```
+  {
+    "anonymousId": "asdf-123456",
+    "amountPlanned": {
+      "centAmount": 10000,
+      "currencyCode": "EUR"
+    }
+  }
+  ```
+}

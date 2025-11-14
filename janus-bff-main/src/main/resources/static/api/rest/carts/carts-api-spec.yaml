@@ -1,0 +1,436 @@
+openapi: 3.0.4
+info:
+  title: Carts (CRUD) API Specification
+  version: 1.0.0
+  description: This API allows to retrieve, update, create and deleted carts from CommerceTool
+  x-fiddle-import-file: true
+servers:
+  - url: https://api.us-central1.gcp.commercetools.com/graco-ct-dev
+  - url: https://localhost:4000/api/graco-ct-dev
+    description: CommerceTool APIs
+tags:
+  - name: Carts
+    description: Carts API of CommerceTools
+paths:
+  /carts/{cartid}:
+    get:
+      summary: Get cart
+      operationId: getCart
+      description: Returns a record of type Cart.
+      tags:
+        - carts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/cartid"
+      responses:
+        "200":
+          description:
+            The request was successful, and the server has returned the
+            requested resource in the response body.
+          content:
+            application/json:
+              example:
+                message: "TODO"
+              schema:
+                type: object
+                properties:
+                  data:object:
+                    $ref: "#/components/schemas/Cart"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+    delete:
+      summary: Delete cart
+      operationId: removeCart
+      description: Deletes a record of type Cart.
+      tags:
+        - carts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/cartid"
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+    put:
+      summary: Update cart
+      operationId: updateCart
+      description: Updates a record of type Cart.
+      tags:
+        - carts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/cartid"
+      responses:
+        "200":
+          $ref: "#/components/schemas/CartUpdate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+  /carts:
+    get:
+      summary: List cart
+      operationId: listCarts
+      description: Returns a list of Cart records.
+      tags:
+        - carts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          $ref: "#/components/schemas/CartSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+    post:
+      summary: Create cart
+      operationId: createCart
+      description: Creates a new record of type Cart.
+      tags:
+        - carts
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: The request was successful, and a new resource was created.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - data:object
+                  properties:
+                    data:object:
+                      $ref: "#/components/schemas/CartCreate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+servers:
+  - url: https://api.us-central1.gcp.commercetools.com/graco-ct-dev
+  - url: https://localhost:4000/api/graco-ct-dev
+    description: Carts APIs
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: bearerToken
+      bearerFormat: JWT
+  schemas:
+    Cart:
+      type: object
+    CartSummary:
+      type: object
+      x-fiddle-dto-info:
+        baseSchemaName: Cart
+    CartUpdate:
+      type: object
+      x-fiddle-dto-info:
+        baseSchemaName: Cart
+    CartCreate:
+      type: object
+      x-fiddle-dto-info:
+        baseSchemaName: Cart
+    OrderList:
+      required:
+        - limit
+        - offset 
+        - count
+        - results
+      properties:
+        limit: 
+          type: integer
+          example: [ 20 ]
+        offset: 
+          type: integer
+          example: [ 0, 20, 40 ]
+        count: 
+          type: integer
+        results: 
+          $ref: "#/components/schemas/Order"
+    Order: 
+      type: "object"
+      required:
+        - createdAt
+        - customLineItems
+        - id
+        - lastModifiedAt
+        - lineItems
+        - orderState
+        - origin
+        - refusedGifts
+        - shipping
+        - shippingMode
+        - syncInfo
+        - totalPrice
+        - version
+      properties:
+        id:
+          type: string
+        version:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: datetime
+        lastModifiedAt:
+          type: string
+          format: datetime
+        orderNumber:
+          type: string
+        purchaseOrderNumber:
+          type: string
+        customerId:
+          type: string
+        customerEmail:
+          type: string
+        customerGroup:
+          $ref: "#/components/schemas/CustomerGroupReference"
+        anonymousId:
+          type: string
+        businessUnit:
+          $ref: "#/components/schemas/BusinessUnitKeyReference"
+        store:
+          $ref: "#/components/schemas/StoreKeyReference"
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineItem"
+        customLineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomLineItem"
+        totalPrice:
+          $ref: "#/components/schemas/CentPrecisionMoney"
+        taxedPrice:
+          $ref: "#/components/schemas/TaxedPrice"
+        taxedShippingPrice:
+          $ref: "#/components/schemas/TaxedPrice"
+        discountOnTotalPrice:
+          $ref: "#/components/schemas/DiscountOnTotalPrice"
+        priceRoundingMode:
+          $ref: "#/components/schemas/RoundingMode"
+        taxMode:
+          $ref: "#/components/schemas/TaxMode"
+        taxRoundingMode:
+          $ref: "#/components/schemas/RoundingMode"
+        taxCalculationMode:
+          $ref: "#/components/schemas/TaxCalculationMode"
+        inventoryMode:
+          $ref: "#/components/schemas/InventoryMode"
+        billingAddress:
+          $ref: "#/components/schemas/Address"
+        shippingAddress:
+          $ref: "#/components/schemas/Address"
+        shippingMode:
+          $ref: "#/components/schemas/ShippingMode"
+        shippingKey:
+          type: string
+        shippingInfo:
+          $ref: "#/components/schemas/ShippingInfo"
+        shippingRateInput:
+          $ref: "#/components/schemas/ShippingRateInput"
+        shippingCustomFields:
+          $ref: "#/components/schemas/CustomFields"
+        shipping:
+          type: array
+          items:
+            $ref: "#/components/schemas/Shipping"
+        itemShippingAddresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
+        discountCodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiscountCodeInfo"
+        directDiscounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/DirectDiscount"
+        refusedGifts:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartDiscountReference"
+        paymentInfo:
+          $ref: "#/components/schemas/PaymentInfo"
+        country:
+          $ref: "#/components/schemas/CountryCode"
+        locale:
+          $ref: "#/components/schemas/Locale"
+        origin:
+          $ref: "#/components/schemas/CartOrigin"
+        cart:
+          $ref: "#/components/schemas/CartReference"
+        quote:
+          $ref: "#/components/schemas/QuoteReference"
+        orderState:
+          $ref: "#/components/schemas/OrderState"
+        shipmentState:
+          $ref: "#/components/schemas/ShipmentState"
+        paymentState:
+          $ref: "#/components/schemas/PaymentState"
+        state:
+          $ref: "#/components/schemas/StateReference"
+        syncInfo:
+          type: array
+          items:
+            $ref: "#/components/schemas/SyncInfo"
+        returnInfo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReturnInfo"
+        discountTypeCombination:
+          $ref: "#/components/schemas/DiscountTypeCombination"
+        lastMessageSequenceNumber:
+          type: "integer"
+          format: "int64"
+        custom:
+          $ref: "#/components/schemas/CustomFields"
+        completedAt:
+          type: string
+          format: datetime
+        lastModifiedBy:
+          $ref: "#/components/schemas/LastModifiedBy"
+        createdBy:
+          $ref: "#/components/schemas/CreatedBy"
+  parameters:
+    cartid:
+      name: cartid
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description:
+        The server could not understand the request due to invalid syntax.
+        The client should modify the request and try again.
+      content:
+        application/json:
+          example:
+            message: "TODO"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "TODO"
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                  required:
+                    - message
+            required:
+              - message
+    NotFound:
+      description:
+        The server cannot find the requested resource. The endpoint may be
+        invalid or the resource may no longer exist.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    InternalServerErrror:
+      description:
+        The server encountered an unexpected condition that prevented it
+        from fulfilling the request. Report the issue to the support team if it
+        persists.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    Unauthorized:
+      description:
+        Authentication is required to access the requested resource. The
+        client must include the appropriate credentials.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    Forbidden:
+      description:
+        The server understood the request, but refuses to authorize it.
+        Ensure the client has appropriate permissions.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    Conflict:
+      description: The request could not be completed due to a conflict with the
+        current state of the resource. Resolve the conflict and try again.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message

@@ -1,0 +1,19 @@
+meta {
+  name: Geo IP
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host_url}}/geoip
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-forwarded-for: 155.190.7.98
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,66 @@
+name: Build and run tests
+
+on:
+  push:
+    branches:
+      - '**'
+
+env:
+  CI_BFF_PASSWORD: ${{ secrets.CI_BFF_PASSWORD }}
+  CI_BFF_USERNAME: ${{ vars.CI_BFF_USERNAME }}
+  CI_CTP_API_URL: ${{ vars.CI_CTP_API_URL }}
+  CI_CTP_AUTH_URL: ${{ vars.CI_CTP_AUTH_URL }}
+  CI_CTP_CLIENT_ID: ${{ secrets.CI_CTP_CLIENT_ID }}
+  CI_CTP_CLIENT_SECRET: ${{ secrets.CI_CTP_CLIENT_SECRET }}
+  CI_CTP_PROJECT_KEY: ${{ vars.CI_CTP_PROJECT_KEY }}
+  CI_STRIPE_SECRET_KEY: ${{ secrets.CI_STRIPE_SECRET_KEY }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: 'package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+      - name: Create .env file for build
+        run: |
+          cat <<EOF > .env
+          BFF_PASSWORD="$CI_BFF_PASSWORD"
+          BFF_USERNAME="$CI_BFF_USERNAME"
+          CTP_API_URL="$CI_CTP_API_URL"
+          CTP_AUTH_URL="$CI_CTP_AUTH_URL"
+          CTP_CLIENT_ID="$CI_CTP_CLIENT_ID"
+          CTP_CLIENT_SECRET="$CI_CTP_CLIENT_SECRET"
+          CTP_PROJECT_KEY="$CI_CTP_PROJECT_KEY"
+          STRIPE_SECRET_KEY="$CI_STRIPE_SECRET_KEY"
+          EOF
+      - name: Build Next.js app
+        run: npm run build
+      - name: Run Unit Tests
+        run: npm run test
+  tag-release-candidate:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/02-tag-release-candidate.yml
+    permissions:
+      contents: write  # Required to push tags in tag-rc
+  ecr:
+    needs: [build-and-test, tag-release-candidate]
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/03-ecr.yml
+    with:
+      tag_name: ${{ needs.tag-release-candidate.outputs.tag_name }}
+      CI_BFF_USERNAME: ${{ vars.CI_BFF_USERNAME }}
+      CI_CTP_API_URL: ${{ vars.CI_CTP_API_URL }}
+      CI_CTP_AUTH_URL: ${{ vars.CI_CTP_AUTH_URL }}
+      CI_CTP_PROJECT_KEY: ${{ vars.CI_CTP_PROJECT_KEY }}
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read

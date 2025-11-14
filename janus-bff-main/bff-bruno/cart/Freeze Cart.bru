@@ -1,0 +1,122 @@
+meta {
+  name: Freeze Cart
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host_url}}/carts/{{cartId}}?currency=GBP
+  body: json
+  auth: inherit
+}
+
+params:query {
+  currency: GBP
+}
+
+headers {
+  Accept-Language: en-GB
+}
+
+body:json {
+  {
+    "version": {{cartVersion}},
+    "actions": [
+      {
+        "action": "freezeCart"
+      }
+    ]
+  }
+  
+}
+
+vars:pre-request {
+  productId: a87813c5-5db5-4526-834f-f2c8a3813654
+  shippingMethodId: 43ab6def-84c7-41e4-9e1b-7267eba867a2
+  ~lineItemId: 83645ac1-402d-4295-aa93-c4cb86e04248
+}
+
+vars:post-response {
+  cartVersion: 
+}
+
+script:post-response {
+  var data = res.body;
+  if(res.status == 200 || res.status == 201) {
+      if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
+          // bru.setEnvVar("cart-id", data.results[0].id); 
+          bru.setEnvVar("cartVersion", data.results[0].version);
+      }
+      if(data.version){
+          bru.setEnvVar("cartVersion", data.version);
+      }
+      // if(data.id){
+      //     bru.setEnvVar("cart-id", data.id); 
+      // }
+  }
+}
+
+docs {
+  # Update Cart
+  
+  Endpoint used for updating a specified cart. 
+  
+  ## Requirements
+  
+  - The request body must contain a `CartUpdate` object.
+  - The id of the cart must be provided in the url path.
+  
+  The `CartUpdate` object includes the following fields: 
+  
+  - `actions`: An array of Update Actions (see below).
+  - `version`: the version number of the cart.
+  
+  Example `CartUpdate`
+  ```
+  {
+    "actions": [
+      {
+        "action": "addLineItem",
+        "quantity": 1,
+        "productId": "648a04df-bc73-4c68-8254-bc246a9d4d72"
+      }
+    ],
+    version: 4
+  }
+  ```
+  
+  
+  ### Update Actions
+  
+  Actions used to perform a modification to a cart in commercetools. 
+  
+  Refer to the [Update actions](https://docs.commercetools.com/api/projects/carts#update-actions)
+  documentation for a full list of available modifications.
+  
+  #### [Add LineItem](https://docs.commercetools.com/api/projects/carts#add-lineitem)
+  ```
+  {
+    "action": "addLineItem",
+    "quantity": 1,
+    "productId": "648a04df-bc73-4c68-8254-bc246a9d4d72"
+  }
+  ```
+  
+  #### [Change LineItem Quantity](https://docs.commercetools.com/api/projects/carts#change-lineitem-quantity)
+  ```
+  {
+    "action": "changeLineItemQuantity",
+    "quantity": 1,
+    "lineItemId": "83645ac1-402d-4295-aa93-c4cb86e04248"
+  }
+  ```
+  
+  #### [Remove LineItem](https://docs.commercetools.com/api/projects/carts#remove-lineitem)
+  ```
+  {
+    "action": "removeLineItem",
+    "lineItemId": "83645ac1-402d-4295-aa93-c4cb86e04248"
+  }
+  ```
+  
+}

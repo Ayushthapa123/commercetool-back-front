@@ -1,0 +1,111 @@
+name: Build and run tests
+
+on:
+  push:
+    branches:
+      - '**'
+
+env:
+  CI_BFF_PASSWORD: ${{ secrets.CI_BFF_PASSWORD }}
+  CI_BFF_URL: ${{ vars.CI_BFF_URL }}
+  CI_BFF_USERNAME: ${{ vars.CI_BFF_USERNAME }}
+  CI_BRIGHTCOVE_ACCOUNT_ID: ${{ vars.CI_BRIGHTCOVE_ACCOUNT_ID }}
+  CI_COOKIE_SECURE: ${{ vars.CI_COOKIE_SECURE }}
+  CI_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+jobs:
+  login-to-ecr:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::583625348942:role/GithubActionsRole
+          aws-region: "us-east-2"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: "false"
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
+      docker_username: ${{ steps.login-ecr.outputs.docker_username_583625348942_dkr_ecr_us_east_2_amazonaws_com }}
+      docker_password: ${{ steps.login-ecr.outputs.docker_password_583625348942_dkr_ecr_us_east_2_amazonaws_com }}
+  build-and-test:
+    needs: login-to-ecr
+    runs-on: ubuntu-latest
+    services:
+      bff:
+        image: ${{ needs.login-to-ecr.outputs.registry }}/graco/janus-bff:latest
+        ports:
+          - 80:80
+        credentials:
+          username: ${{ needs.login-to-ecr.outputs.docker_username }}
+          password: ${{ needs.login-to-ecr.outputs.docker_password }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: "package-lock.json"
+      - name: health check bff
+        run: curl --fail $CI_BFF_URL/health/liveness
+      - name: Install dependencies
+        run: npm ci
+      - name: Create .env file for build
+        run: |
+          cat <<EOF > .env
+          BFF_PASSWORD="$CI_BFF_PASSWORD"
+          BFF_URL="$CI_BFF_URL"
+          BFF_USERNAME="$CI_BFF_USERNAME"
+          BRIGHTCOVE_ACCOUNT_ID="$CI_BRIGHTCOVE_ACCOUNT_ID"
+          COOKIE_SECURE="$CI_COOKIE_SECURE"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="$CI_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+          EOF
+      # Next.js build caching recommendation to stop No Cache Detected error: https://nextjs.org/docs/pages/guides/ci-build-caching#github-actions
+      - name: Next.js Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+      - name: Build Next.js app
+        run: npm run build
+      - name: Run Unit Tests
+        run: npm run test
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+  tag-release-candidate:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/02-tag-release-candidate.yml
+    permissions:
+      contents: write # Required to push tags in tag-rc
+  ecr:
+    needs: tag-release-candidate
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/03-ecr.yml
+    with:
+      tag_name: ${{ needs.tag-release-candidate.outputs.tag_name }}
+    permissions:
+      id-token: write
+      contents: read

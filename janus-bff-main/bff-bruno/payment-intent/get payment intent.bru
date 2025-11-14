@@ -1,0 +1,21 @@
+meta {
+  name: get payment intent
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host_url}}/payment-intent?paymentIntentId=pi_3SKKJmHyKsZtnJEI1q9aJKhj&expandPaymentMethod=true
+  body: none
+  auth: inherit
+}
+
+params:query {
+  paymentIntentId: pi_3SKKJmHyKsZtnJEI1q9aJKhj
+  expandPaymentMethod: true
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

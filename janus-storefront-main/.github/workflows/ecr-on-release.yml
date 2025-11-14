@@ -1,0 +1,61 @@
+name: Docker image build and publish on release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  docker-stage:
+    runs-on: ubuntu-latest
+
+    environment: Stage
+    env:
+      AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    outputs:
+      image_tag: ${{ steps.build-publish.outputs.image_tag }}
+      full_image: ${{ steps.build-publish.outputs.full_image }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsRole
+          aws-region: "us-east-2"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: graco/janus-storefront
+          IMAGE_TAG: ${{ github.ref_name }}
+        run: |
+          echo "Building Docker image with tag: $IMAGE_TAG"
+          docker build \
+            --build-arg NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" \
+            -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" \
+            -t "$REGISTRY/$REPOSITORY:latest" \
+            .
+          docker push $REGISTRY/$REPOSITORY --all-tags
+      - name: Force new ECS deployment
+        run: |
+          clusters=$(aws ecs list-clusters --query "clusterArns[]" --output text)
+            for cluster in $clusters; do
+              services=$(aws ecs list-services --cluster $cluster --output text)
+              for service in $services; do
+                if [[ $service == *storefrontservice* ]]; then
+                  echo "Forcing new deployment for $service in $cluster"
+                  aws ecs update-service \
+                    --cluster $cluster \
+                    --service $service \
+                    --force-new-deployment
+                fi
+              done
+            done

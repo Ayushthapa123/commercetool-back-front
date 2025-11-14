@@ -1,0 +1,25 @@
+meta {
+  name: Get Related Products
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host_url}}/carts/related-products?currency=EUR&cartId={{cartId}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  currency: EUR
+  cartId: {{cartId}}
+}
+
+headers {
+  Accept-Language: en-GB
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

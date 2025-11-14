@@ -1,0 +1,131 @@
+openapi: 3.0.4
+info:
+  title: Product API Specification
+  version: 1.0.0
+  description: This API allows to retrieve, update, create and delete product from CommerceTool
+  x-fiddle-import-file: true
+tags:
+  - name: Products
+    description: Product APIs in CommerceTools
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get All Products
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          content:
+            text/yaml:
+              example:
+                message: "TODO"
+              schema:
+                type: object
+                properties: {}
+                title: ListProductsOk
+          description: OK
+        "401":
+          description: Not authenticated
+        "403":
+          description: Access token does not have the required scope
+      description: List all products available in Janus projects
+      operationId: listProducts
+servers:
+  - url: https://api.us-central1.gcp.commercetools.com/graco-ct-dev
+  - url: https://localhost:4000/api/graco-ct-dev
+    description: Product APIs
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: bearerToken
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: The server could not understand the request due to invalid syntax.
+        The client should modify the request and try again.
+      content:
+        application/json:
+          example:
+            message: "TODO"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "TODO"
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                  required:
+                    - message
+            required:
+              - message
+    NotFound:
+      description: The server cannot find the requested resource. The endpoint may be
+        invalid or the resource may no longer exist.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    InternalServerErrror:
+      description: The server encountered an unexpected condition that prevented it
+        from fulfilling the request. Report the issue to the support team if it
+        persists.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    Unauthorized:
+      description: Authentication is required to access the requested resource. The
+        client must include the appropriate credentials.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    Forbidden:
+      description: The server understood the request, but refuses to authorize it.
+        Ensure the client has appropriate permissions.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+    Conflict:
+      description: The request could not be completed due to a conflict with the
+        current state of the resource. Resolve the conflict and try again.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message

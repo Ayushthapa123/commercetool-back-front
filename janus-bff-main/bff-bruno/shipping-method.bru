@@ -1,0 +1,19 @@
+meta {
+  name: shipping-method
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host_url}}/shipping-method/?cartid={{cartId}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  cartid: {{cartId}}
+}
+
+vars:pre-request {
+  cartId: 7e92191f-7e7c-4ed9-96e0-cb1f471aa251
+}

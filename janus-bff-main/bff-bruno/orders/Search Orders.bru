@@ -1,0 +1,19 @@
+meta {
+  name: Search Orders
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host_url}}/orders?anonymousId=9a3503de-63b3-4c2b-b0c4-1f7dafd6af1f
+  body: none
+  auth: inherit
+}
+
+params:query {
+  anonymousId: 9a3503de-63b3-4c2b-b0c4-1f7dafd6af1f
+}
+
+settings {
+  encodeUrl: true
+}

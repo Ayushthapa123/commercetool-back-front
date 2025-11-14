@@ -1,0 +1,23 @@
+meta {
+  name: Get Cart
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host_url}}/carts/{{cartId}}
+  body: none
+  auth: inherit
+}
+
+docs {
+   
+  # Get Cart
+  
+  Endpoint used for retrieving a [Cart](https://docs.commercetools.com/api/projects/carts#cart)
+  in commercetools.
+  
+  ## Requirements 
+  
+  - The cart id must be included in the url path.
+}

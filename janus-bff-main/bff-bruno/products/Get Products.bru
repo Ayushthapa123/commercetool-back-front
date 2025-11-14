@@ -1,0 +1,23 @@
+meta {
+  name: Get Products
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host_url}}/products?limit=20&offset=0&currency=EUR
+  body: none
+  auth: inherit
+}
+
+params:query {
+  limit: 20
+  offset: 0
+  currency: EUR
+  ~skus: 2004277
+  ~skus: 18F519
+}
+
+headers {
+  Accept-Language: en-GB
+}

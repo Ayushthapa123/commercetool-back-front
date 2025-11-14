@@ -1,0 +1,15 @@
+meta {
+  name: healthcheck
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{host_url}}/health/liveness
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+}

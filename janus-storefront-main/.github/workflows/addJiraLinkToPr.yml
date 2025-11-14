@@ -1,0 +1,62 @@
+name: Add Jira Link to PR
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+  workflow_call:
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  add-jira-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Jira link to PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jiraBaseUrl = "https://gracoinc.atlassian.net/browse/";
+            const pr = context.payload.pull_request;
+            let title = pr.title;
+            const body = pr.body || "";
+
+            // Normalize title if it matches "Jbp1 ####"
+            const badTitleMatch = title.match(/^Jbp1 (\d{3,4})(.*)$/);
+            if (badTitleMatch) {
+              const ticketNumberWithoutJbp1 = badTitleMatch[1];
+              const restOfTitle = badTitleMatch[2];
+              title = `JBP1-${ticketNumberWithoutJbp1} ${restOfTitle}`;
+
+              await github.rest.pulls.update({
+                ...context.repo,
+                pull_number: pr.number,
+                title: title
+              });
+            }
+
+            // Now check for Jira ticket ID in title or body, if so, add comment with link
+            const ticketIdMatch = title.match(/(JBP1-\d+)/) || body.match(/(JBP1-\d+)/);
+
+            if (ticketIdMatch) {
+              const jiraId = ticketIdMatch[1];
+              const jiraUrl = `${jiraBaseUrl}${jiraId}`;
+              const jiraLinkMarkdown = `🔗 Jira Ticket: [${jiraId}](${jiraUrl})`;
+
+              // Check if a comment with the exact Jira ticket ID already exists
+              const comments = await github.rest.issues.listComments({
+                ...context.repo,
+                issue_number: context.issue.number
+              });
+
+              const commentExists = comments.data.some(comment => comment.body.includes(jiraUrl));
+
+              if (!commentExists) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.issue.number,
+                  body: jiraLinkMarkdown
+                });
+              }
+            }

@@ -1,0 +1,13 @@
+name: Add Jira Link to PR
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  call-reusable:
+    uses: GracoInc/janus-storefront/.github/workflows/addJiraLinkToPr.yml@main

@@ -1,0 +1,32 @@
+meta {
+  name: Delete Cart
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{host_url}}/carts/:cartId?version=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  version: 2
+}
+
+params:path {
+  cartId: 792106bd-4935-447d-95a7-142ad92297bf
+}
+
+docs {
+   
+  # Delete Cart
+  
+  Endpoint used for deleting a [Cart](https://docs.commercetools.com/api/projects/carts#cart)
+  in commercetools.
+  
+  ## Requirements 
+  
+  - The cart id must be included in the url path.
+  - The version of the cart must be included as a query parameter.
+}

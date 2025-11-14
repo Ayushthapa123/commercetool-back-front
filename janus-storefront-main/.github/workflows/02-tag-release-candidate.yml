@@ -1,0 +1,48 @@
+
+name: Tag a release candidate
+
+on:
+  workflow_call:
+    outputs:
+      tag_name:
+        description: "The release candidate tag that was created"
+        value: ${{ jobs.tag-rc.outputs.tag_name }}
+
+jobs:
+  tag-rc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to push tags
+    outputs:
+      tag_name: ${{ steps.versioning.outputs.tag_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required to access all tags
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+      - name: Generate new RC tag
+        id: versioning
+        run: |
+          git fetch --tags
+
+          # Get the latest stable version (no -rc suffix)
+          latest=$(git tag -l | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          base=${latest:-0.1.0}
+
+          # Bump patch version
+          IFS='.' read -r major minor patch <<< "$base"
+          next_patch=$((patch + 1))
+          next_version="${major}.${minor}.${next_patch}"
+
+          # Count existing RCs for this next version
+          rc_count=$(git tag -l "${next_version}-rc.*" | wc -l)
+          new_tag="${next_version}-rc.$((rc_count + 1))"
+
+          git tag "$new_tag"
+          git push origin "$new_tag"
+
+          echo "tag_name=$new_tag" >> $GITHUB_OUTPUT

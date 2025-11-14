@@ -1,0 +1,81 @@
+meta {
+  name: Update Order
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host_url}}/orders/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: asdf-1234
+}
+
+body:json {
+  {
+    "version": 1,
+    "actions": [
+      {
+        "action": "addPayment",
+        "payment": {
+          "typeId": "payment",
+          "id": "da874ca2-1ee4-4a39-8b5c-9835385bf3da"
+        }
+      }
+    ]
+  }
+}
+
+docs {
+  # Update Order
+  
+  Endpoint used for updating a specified order. 
+
+  ## Requirements
+
+  - The request body must contain an `OrderUpdate` object.
+  - The id of the order must be provided in the url path.
+
+  The `OrderUpdate` object includes the following fields: 
+  
+  - `actions`: An array of Update Actions (see below).
+  - `version`: the version number of the order.
+
+  Example `OrderUpdate`
+  ```
+  {
+    "actions": [
+      {
+        "action": "addPayment",
+        "payment": {
+          "typeId": "payment",
+          "id": "da874ca2-1ee4-4a39-8b5c-9835385bf3da"
+        }
+      }
+    ],
+    version: 4
+  }
+  ```
+
+
+  ### Update Actions
+  
+  Actions used to perform a modification to an order in commercetools. 
+
+  Refer to the [Update actions](https://docs.commercetools.com/api/projects/orders#update-actions)
+  documentation for a full list of available modifications.
+
+  #### [Add Payment](https://docs.commercetools.com/api/projects/orders#add-payment)
+  ```
+  {
+    "action": "addPayment",
+    "payment": {
+      "typeId": "payment",
+      "id": "da874ca2-1ee4-4a39-8b5c-9835385bf3da"
+    }
+  }
+  ```
+}

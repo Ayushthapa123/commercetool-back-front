@@ -1,0 +1,23 @@
+meta {
+  name: Get Product
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{host_url}}/products/:productID?currency=GBP
+  body: none
+  auth: inherit
+}
+
+params:query {
+  currency: GBP
+}
+
+params:path {
+  productID: 17p712-vacuvalve-cap
+}
+
+headers {
+  Accept-Language: en-GB
+}

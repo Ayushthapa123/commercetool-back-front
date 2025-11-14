@@ -1,0 +1,47 @@
+meta {
+  name: Create Order
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host_url}}/orders
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "cart": {
+      "typeId": "cart",
+      "id": "{{cartId}}"
+    },
+    "orderNumber": "{{orderNumber}}",
+    "version": {{cartVersion}}
+  }
+}
+
+docs {
+  # Create Order
+  
+  Endpoint used for creating an [Order](https://docs.commercetools.com/api/projects/orders#order)
+  in commercetools.
+  
+  ## Requirements
+  
+  > _INFO_: Does not currently allow for the creation of Orders using Quotes.
+  
+  - The request body must contain an [OrderFromCartDraft](https://docs.commercetools.com/api/projects/orders#orderfromcartdraft) object.
+  
+  Example `OrderFromCartDraft`
+  ```
+  {
+    "cart": {
+      "typeId": "cart",
+      "id": "1234"
+    },
+    "version": 1,
+    "purchaseOrderNumber": "po123"
+  }
+  ```
+}

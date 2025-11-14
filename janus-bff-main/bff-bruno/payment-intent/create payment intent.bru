@@ -1,0 +1,20 @@
+meta {
+  name: create payment intent
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host_url}}/payment-intent
+  body: json
+  auth: inherit
+}
+
+
+body:json {
+  {"cartId": "6b22e011-c1be-47f0-ae21-2a7f38dbc1b2"}
+}
+
+settings {
+  encodeUrl: true
+}

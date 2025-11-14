@@ -1,0 +1,155 @@
+name: Docker image build and publish
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+      CI_BFF_USERNAME:
+        required: true
+        type: string
+      CI_CTP_API_URL:
+        required: true
+        type: string
+      CI_CTP_AUTH_URL:
+        required: true
+        type: string
+      CI_CTP_PROJECT_KEY:
+        required: true
+        type: string
+    secrets:
+      CI_BFF_PASSWORD:
+        required: true
+      CI_CTP_CLIENT_ID:
+        required: true
+      CI_CTP_CLIENT_SECRET:
+        required: true
+      CI_STRIPE_SECRET_KEY:
+        required: true
+
+jobs:
+  docker-dev:
+    runs-on: ubuntu-latest
+
+    environment: Development
+    env:
+      AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    outputs:
+      image_tag: ${{ steps.build-publish.outputs.image_tag }}
+      full_image: ${{ steps.build-publish.outputs.full_image }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsRole
+          aws-region: "us-east-2"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Create .env file for build
+        run: |
+          cat <<EOF > .env
+          BFF_PASSWORD="${{ secrets.CI_BFF_PASSWORD }}"
+          BFF_USERNAME="${{ inputs.CI_BFF_USERNAME }}"
+          CTP_API_URL="${{ inputs.CI_CTP_API_URL }}"
+          CTP_AUTH_URL="${{ inputs.CI_CTP_AUTH_URL }}"
+          CTP_CLIENT_ID="${{ secrets.CI_CTP_CLIENT_ID }}"
+          CTP_CLIENT_SECRET="${{ secrets.CI_CTP_CLIENT_SECRET }}"
+          CTP_PROJECT_KEY="${{ inputs.CI_CTP_PROJECT_KEY }}"
+          STRIPE_SECRET_KEY="${{ secrets.CI_STRIPE_SECRET_KEY }}"
+          EOF
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: graco/janus-bff
+          IMAGE_TAG: ${{ inputs.tag_name }}
+        run: |
+          echo "Building Docker image with tag: $IMAGE_TAG"
+          docker build --secret id=ENV,src=$PWD/.env -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
+          docker push $REGISTRY/$REPOSITORY --all-tags
+      - name: Force new ECS deployment
+        run: |
+          clusters=$(aws ecs list-clusters --query "clusterArns[]" --output text)
+            for cluster in $clusters; do
+              services=$(aws ecs list-services --cluster $cluster --output text)
+              for service in $services; do
+                if [[ $service == *bffservice* ]]; then
+                  echo "Forcing new deployment for $service in $cluster"
+                  aws ecs update-service \
+                    --cluster $cluster \
+                    --service $service \
+                    --force-new-deployment
+                fi
+              done
+            done
+
+  docker-qa:
+    runs-on: ubuntu-latest
+    needs: docker-dev
+
+    environment: QA
+    env:
+      AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    outputs:
+      image_tag: ${{ steps.build-publish.outputs.image_tag }}
+      full_image: ${{ steps.build-publish.outputs.full_image }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsRole
+          aws-region: "us-east-2"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Create .env file for build
+        run: |
+          cat <<EOF > .env
+          BFF_PASSWORD="${{ secrets.CI_BFF_PASSWORD }}"
+          BFF_USERNAME="${{ inputs.CI_BFF_USERNAME }}"
+          CTP_API_URL="${{ inputs.CI_CTP_API_URL }}"
+          CTP_AUTH_URL="${{ inputs.CI_CTP_AUTH_URL }}"
+          CTP_CLIENT_ID="${{ secrets.CI_CTP_CLIENT_ID }}"
+          CTP_CLIENT_SECRET="${{ secrets.CI_CTP_CLIENT_SECRET }}"
+          CTP_PROJECT_KEY="${{ inputs.CI_CTP_PROJECT_KEY }}"
+          STRIPE_SECRET_KEY="${{ secrets.CI_STRIPE_SECRET_KEY }}"
+          EOF
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: graco/janus-bff
+          IMAGE_TAG: ${{ inputs.tag_name }}
+        run: |
+          echo "Building Docker image with tag: $IMAGE_TAG"
+          docker build --secret id=ENV,src=$PWD/.env -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
+          docker push $REGISTRY/$REPOSITORY --all-tags
+      - name: Force new ECS deployment
+        run: |
+          clusters=$(aws ecs list-clusters --query "clusterArns[]" --output text)
+            for cluster in $clusters; do
+              services=$(aws ecs list-services --cluster $cluster --output text)
+              for service in $services; do
+                if [[ $service == *bffservice* ]]; then
+                  echo "Forcing new deployment for $service in $cluster"
+                  aws ecs update-service \
+                    --cluster $cluster \
+                    --service $service \
+                    --force-new-deployment
+                fi
+              done
+            done

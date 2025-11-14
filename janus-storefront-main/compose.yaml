@@ -1,0 +1,6 @@
+services:
+  web:
+    build: .
+    env_file: .env.local
+    ports:
+      - "3000:80"

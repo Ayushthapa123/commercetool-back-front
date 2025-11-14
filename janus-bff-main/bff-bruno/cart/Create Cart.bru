@@ -1,0 +1,40 @@
+meta {
+  name: Create Cart
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host_url}}/carts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "anonymousId": "asdf-89238411",
+    "currency":"EUR",
+    "country":"DE"
+  }
+}
+
+docs {
+   
+  # Create Cart
+  
+  Endpoint used for creating a [Cart](https://docs.commercetools.com/api/projects/carts#cart)
+  in commercetools.
+  
+  ## Requirements 
+  
+  - The request body must contain a [CartDraft](https://docs.commercetools.com/api/projects/carts#cartdraft) object.
+  
+  Example `CartDraft`
+  ```
+  {
+    "anonymousId": "asdf-8923847",
+    "currency":"EUR",
+    "country":"DE"
+  }
+  ```
+}
