@@ -132,41 +132,11 @@ export async function Footer({ t }: Readonly<FooterProps>) {
       <div className="bg-neutral-black w-screen text-white">
         <div className="container mx-auto py-0 md:py-14">
           <div className="hidden gap-3 md:flex">
-            {[
-              ...footerNav.keys().map((key, index) => {
-                return (
-                  <div className="flex grow flex-col gap-8" key={index}>
-                    <h4 className="font-bold">{key}</h4>
-                    <ul className="flex flex-col gap-4 text-sm">
-                      {navLinks(footerNav.get(key) ?? [])}
-                    </ul>
-                  </div>
-                );
-              }),
-            ]}
+           ..
           </div>
           <div className="flex md:hidden">
             <Accordion type="multiple" className="grow">
-              {[
-                ...footerNav.keys().map((key, index) => {
-                  return (
-                    <AccordionItem
-                      value={`item-${index}`}
-                      key={index}
-                      className="border-neutral-black-70 px-5 last:border-b-1"
-                    >
-                      <AccordionTrigger className="cursor-pointer text-lg font-bold hover:no-underline">
-                        {key}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="flex flex-col gap-4">
-                          {navLinks(footerNav.get(key) ?? [])}
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                }),
-              ]}
+            
             </Accordion>
           </div>
         </div>

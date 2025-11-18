@@ -18,6 +18,7 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   response.headers.set("x-pathname", url.pathname + url.search);
 
+
   if (!localeCookie) {
     const { BFF_URL } = process.env;
     const url = `${BFF_URL}/geoip`;
@@ -32,7 +33,12 @@ export async function middleware(request: NextRequest) {
       },
     });
 
-    const data = await ipResponse.json();
+    // const data = await ipResponse.json();
+    const data = {
+      continent: "EU",
+      country: "GB",
+    };
+    console.log(data);
 
     const countryLocale = mapCountryToLocale(data);
 

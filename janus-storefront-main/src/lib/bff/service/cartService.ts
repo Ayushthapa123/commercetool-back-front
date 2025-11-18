@@ -3,6 +3,7 @@ import {
   SetShippingAddressAndPaymentToCartProps,
 } from "@/lib/bff/cart";
 import { StripeAddressDetails } from "@/lib/checkout/checkoutSchemas";
+import { getCsrfToken } from "@/lib/http/getCsrfToken";
 import { logError, logger } from "@/lib/logger";
 import { CartModel, emptyCart } from "@/lib/models/cartModel";
 import { ProductModel } from "@/lib/models/productModel";
@@ -93,6 +94,7 @@ class CartService {
         country: country,
         locale: locale,
       };
+      const csrfToken = await getCsrfToken(this.auth);
 
       const options: AxiosRequestConfig<CartDraft> = {
         url: this.baseUrl,
@@ -100,6 +102,7 @@ class CartService {
         headers: {
           Authorization: `Basic ${this.auth}`,
           Accept: "application/json",
+          "x-csrf-token": csrfToken,
         },
         data: draft,
       };
@@ -332,7 +335,9 @@ class CartService {
       if (refreshBeforeUpdate) {
         searchParams.refreshBeforeUpdate = "true";
       }
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(searchParams); 
+
+      const csrfToken = await getCsrfToken(this.auth);
 
       const url = `${this.baseUrl}/${id}`;
       const options: AxiosRequestConfig<CartUpdate> = {
@@ -342,6 +347,7 @@ class CartService {
           Authorization: `Basic ${this.auth}`,
           Accept: "application/json",
           "Accept-Language": locale,
+          "x-csrf-token": csrfToken,
         },
         data: update,
         params,

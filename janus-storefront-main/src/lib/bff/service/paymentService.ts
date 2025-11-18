@@ -1,4 +1,5 @@
 import { getCart } from "@/lib/bff/cart";
+import { getCsrfToken } from "@/lib/http/getCsrfToken";
 import { logError } from "@/lib/logger";
 import { CartModel } from "@/lib/models/cartModel";
 import { getOrCreateSessionId } from "@/lib/session/sessionStore";
@@ -38,12 +39,15 @@ export class PaymentService {
       },
     };
 
+    const csrfToken = await getCsrfToken(this.auth);
+
     const options: AxiosRequestConfig<PaymentDraft> = {
       url: `${this.bffUrl}/payments`,
       method: "POST",
       headers: {
         Authorization: `Basic ${this.auth}`,
         Accept: "application/json",
+        "x-csrf-token": csrfToken,
       },
       data: paymentDraft,
     };
@@ -89,6 +93,7 @@ export class PaymentService {
     cartId: string,
   ): Promise<Stripe.PaymentIntent | null> {
     try {
+      const csrfToken = await getCsrfToken(this.auth);
       const response = await axios.post<Stripe.PaymentIntent>(
         `${this.bffUrl}/payment-intent`,
         { cartId },
@@ -96,6 +101,7 @@ export class PaymentService {
           headers: {
             Authorization: `Basic ${this.auth}`,
             "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
           },
         },
       );
@@ -109,6 +115,7 @@ export class PaymentService {
 
   async updatePaymentIntent(cartId: string, orderNumber: string) {
     try {
+      const csrfToken = await getCsrfToken(this.auth);
       const response = await axios.post<CartModel>(
         `${this.bffUrl}/payment-intent/update`,
         { cartId, orderNumber },
@@ -116,6 +123,7 @@ export class PaymentService {
           headers: {
             Authorization: `Basic ${this.auth}`,
             "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
           },
         },
       );

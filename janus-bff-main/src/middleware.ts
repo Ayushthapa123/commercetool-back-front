@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { validateCsrfToken } from "./lib/csrf";
 
 // Basic auth credentials
 const { BFF_USERNAME: USERNAME, BFF_PASSWORD: PASSWORD } = process.env;
@@ -27,6 +28,16 @@ function validateBasicAuth(authHeader: string | null): boolean {
 export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/health/liveness")) {
     return NextResponse.next();
+  }
+
+  if (request.method === "POST") {
+    const csrfToken = request.headers.get("x-csrf-token");
+    if (!csrfToken) {
+      return new NextResponse("CSRF token is required", { status: 403 });
+    }
+    if (!validateCsrfToken(csrfToken)) {
+      return new NextResponse("Invalid CSRF token", { status: 403 });
+    }
   }
 
   const authHeader = request.headers.get("authorization");

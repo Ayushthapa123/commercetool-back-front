@@ -1,3 +1,4 @@
+import { getCsrfToken } from "@/lib/http/getCsrfToken";
 import { logError } from "@/lib/logger";
 import {
   emptyOrder,
@@ -50,12 +51,14 @@ class OrderService {
   async getNextOrderNumber(): Promise<string> {
     try {
       const url = `${this.baseUrl}/number`;
+      const csrfToken = await getCsrfToken(this.auth);
       const options: AxiosRequestConfig = {
         url: url,
         method: "POST",
         headers: {
           Authorization: `Basic ${this.auth}`,
           Accept: "application/json",
+          "x-csrf-token": csrfToken,
         },
       };
 
@@ -122,6 +125,8 @@ class OrderService {
         orderNumber,
       };
 
+      const csrfToken = await getCsrfToken(this.auth as string);
+
       const options: AxiosRequestConfig = {
         url: this.baseUrl,
         method: "POST",
@@ -129,6 +134,7 @@ class OrderService {
           "Content-Type": "application/json",
           Authorization: `Basic ${this.auth}`,
           Accept: "application/json",
+          "x-csrf-token": csrfToken,
         },
         data: draft,
       };
@@ -159,6 +165,8 @@ class OrderService {
         actions: actions,
       };
 
+      const csrfToken = await getCsrfToken(this.auth as string);
+
       const url = `${this.baseUrl}/${order.id}`;
       const options: AxiosRequestConfig<OrderUpdate> = {
         url: url,
@@ -166,6 +174,7 @@ class OrderService {
         headers: {
           Authorization: `Basic ${this.auth}`,
           Accept: "application/json",
+          "x-csrf-token": csrfToken,
         },
         data: update,
       };
