@@ -27,12 +27,14 @@ export async function GET(
   request: Request,
   context: RouteParams,
 ): APIResponse<ProductModel> {
+  console.log("contextcontextcontextcontext", context);
   const { CTP_API_URL, CTP_PROJECT_KEY } = process.env;
   const { slug } = await context.params;
   const { searchParams } = new URL(request.url);
   const currency = searchParams.get("currency") ?? DEFAULT_CURRENCY;
   const locale = request.headers.get("Accept-Language") ?? DEFAULT_LOCALE;
   const country = locale.split("-")[1] ?? DEFAULT_COUNTRY;
+  console.log("slugslugslugslug", slug);
 
   const params = new URLSearchParams();
   const slugQuery = `slug(${locale}="${slug}")`;
@@ -53,6 +55,7 @@ export async function GET(
   };
 
   try {
+    console.log("optionsoptionsoptionsoptions", options);
     const { data } =
       await axios.request<ProductProjectionPagedQueryResponse>(options);
 
@@ -61,6 +64,7 @@ export async function GET(
       logger.warn(message);
       throw new NotFoundError(message);
     }
+    console.log("dataaaaaaaaaaaaaaaaaa", data);
 
     const product = data.results[0];
     const result = mapProductModel(product, locale, currency);

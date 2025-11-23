@@ -54,6 +54,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const productModel = await getProduct(slug);
+  console.log("productModel", productModel);
   if (!productModel) {
     return {
       title: "404",

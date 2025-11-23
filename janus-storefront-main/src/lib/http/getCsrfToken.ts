@@ -5,7 +5,7 @@ import axios from "axios";
  * Fetch CSRF token from BFF.
  */
 export async function getCsrfToken(auth: string): Promise<string> {
-  const url = `${process.env.BFF_URL?.replace(/\/$/, "") ?? ""}/api/csrf-token`;
+  const url = `${process.env.BFF_URL?.replace(/\/$/, "") ?? ""}/csrf-token`;
 
   if (!process.env.BFF_URL) {
     throw new Error("BFF_URL is not set in environment variables");

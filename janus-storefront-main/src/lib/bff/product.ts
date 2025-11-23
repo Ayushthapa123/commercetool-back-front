@@ -50,6 +50,7 @@ export async function getProduct(id: string): Promise<ProductModel | null> {
   const locale = await getLocale();
   const currency = await getSessionCurrency();
   const { BFF_URL } = process.env;
+  console.log("BFF_URL", BFF_URL);
 
   try {
     const params = new URLSearchParams();
@@ -65,8 +66,10 @@ export async function getProduct(id: string): Promise<ProductModel | null> {
       },
       params: params,
     };
+    console.log("options", options);
 
     const response = await axios.request<ProductModel>(options);
+    console.log("responserrrrrrrrrrrrrrrrrrrr", response.data);
     return response.data;
   } catch (error) {
     logError(error, `Could not fetch product with id: ${id}`);

@@ -25,6 +25,7 @@ type PagedResponse = {
  * @returns an array of products
  */
 export async function GET(request: Request): APIResponse<ProductModel[]> {
+  console.log("requestrequestrequestrequest", request);
   const { CTP_API_URL, CTP_PROJECT_KEY } = process.env;
   const token = await getServiceAuthToken();
   const { searchParams } = new URL(request.url);
